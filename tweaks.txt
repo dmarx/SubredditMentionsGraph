@@ -1,0 +1,111 @@
+Color by modularity, size by degree with log spline
+force atlast 2 layout - linlog mode, prevent overlap
+--> to do:
+    * Fold in subscriber count (use as size)
+
+################################################3
+
+Exporter settings:
+
+LEGEND
+node*: 
+Balls represent subreddits.
+
+edge*: 
+Connections represent relationships inferred from "subreddit mentions" in comments (via /r/<subredditName> syntax).
+
+color*:
+Colors highlight communities of related subreddits identified algorithmically.
+
+Link (does this do anything?)
+http://subredditmentions.com
+
+Author*: 
+David Marx
+
+Title*:
+<h2>Reddit Community Structure</h2>
+
+Short Description*:
+<br><br><h3>Summary</h3><br>
+
+A visualization of the community structure of reddit inferred from how subreddits are talked about across the website.
+
+<br><br><h3>Methodology</h3><br>
+
+Reddit comments were monitored for several months looking for references to subreddits (via "/r/subedditName" markdown syntax) in reddit comments. 
+Counts of the numbers of users who mentioned a given subreddit in comments submitted to another subreddit were treated as "votes" in favor of the existence of a (directed) 
+relationship between the subreddit in which the comment occurred (source) and the mentioned subreddit (target). 
+Only relationships with at least 3 "votes" were considered strong enough to appear in this visualization
+
+Long Description*:
+<br><h3>Summary</h3><br>
+
+A visualization of the community structure of reddit inferred from how subreddits are talked about across the website.
+
+<br><h3>Methodology</h3><br>
+
+Reddit comments were monitored for several months looking for references to subreddits (via "/r/subedditName" markdown syntax) in reddit comments. 
+Counts of the numbers of users who mentioned a given subreddit in comments submitted to another subreddit were treated as "votes" in favor of the existence of a (directed) 
+relationship between the subreddit in which the comment occurred (source) and the mentioned subreddit (target). 
+Only relationships with at least 3 "votes" were considered strong enough to appear in this visualization
+
+<br><br>
+
+NB: At no point is any confirmation performed to validate that a mentioned subreddits is in fact a valid subreddit. The consequence is that some subreddits
+that appear in this visualization are not actually subreddits (e.g. /r/all), are no longer active (e.g. /r/jailbait, /r/fatpeoplehate), are unresolved aliases
+for other subeddits (e.g. /r/lol -> /r/leagueoflegends), mispellings of valid subreddits (/r/millionaremakers), or may be subreddit names used as though they 
+were "hashtags" (e.g. /r/thathappened). For the most part, the occurrence of invalid subreddits is largely mitigated by the "voting" approach taken in this analysis.
+
+<br><br><h3>Technical Details</h3><br><br>
+
+The graph layout was calculated using gephi's Force Atlas 2 algorithm with LinLog mode activated and the "Prevent Overlap" option added after the layout had stabilized. 
+The graph was then exported to a webapp using the SigmaJs Exporter plugin (provided graciously by the Oxford Internet Institute), and then a few configuration parameters
+were adjusted manually to finish the visualization.
+
+<br><br>
+
+The data set can also be explored at http://subredditmentions.com, a webapp by the author of this visualization which visualizes 
+occurences of subreddit mentions overlaid on top of the traffic statistics for the "mentioned" subreddit.
+
+
+Hover Behavior :None
+Group Selector: None (could make this modularity class or color)
+Image Attribute: None
+
+----------------------------------------------------------------------------------
+
+Too much text, hides search bar. Need to shorten copy.s
+
+in config.json:
+
+minNodeSize: 0.07
+maxNodeSize: 4
+minEdgeSize:0.5
+maxEdgeSize: 2
+maxRatio: 80
+labelThreshold: 7 # *might* be better as 8? Whatever. It's subtle.
+
+To change background color, modify background attribute of .fancybox-skin class in jquery.fancybox.css
+
+.fancybox-skin
+
+Additionally, edit the <title> div to provide an actual title for the webpage.
+
+>>Ensure subredditmentions.com can be taken down if it gets too expensive (it will).<<
+
+Take subredditmentions off of debug mode, investigate potential security holes in file/folder permissions.
+
+Finish upgrades to subredditmentions (permalinking view pages, constraining search to single mentions box)
+
+Add an "explore" hyperlink that links to this visualization
+
+Node attributes to fold in:
+    * # subscribers
+    * Avg uniques/hr (if this is something I even can find)
+    * NSFW
+    * Subreddit created date
+    --> Which of these attributes can I fold in from that giant subreddits dataset?
+    
+Add hosting for the raw dataset, separate post to /r/datasets
+
