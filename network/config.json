@@ -9,8 +9,8 @@
   },
   "text": {
     "title": "\u003ch2\u003eReddit Community Structure\u003c/h2\u003e",
-    "more": "\u003cbr\u003e\u003ch3\u003eSummary\u003c/h3\u003e\u003cbr\u003e\n\nA visualization of the community structure of reddit inferred from how subreddits are talked about across the website.\n\n\u003cbr\u003e\u003ch3\u003eMethodology\u003c/h3\u003e\u003cbr\u003e\n\nReddit comments were monitored for several months looking for references to subreddits (via \"/r/subedditName\" markdown syntax) in reddit comments. \nCounts of the numbers of users who mentioned a given subreddit in comments submitted to another subreddit were treated as \"votes\" in favor of the existence of a (directed) \nrelationship between the subreddit in which the comment occurred (source) and the mentioned subreddit (target). \nOnly relationships with at least 3 \"votes\" were considered strong enough to appear in this visualization\n\n\u003cbr\u003e\u003cbr\u003e\u003ch3\u003eTechnical Details\u003c/h3\u003e\u003cbr\u003e\u003cbr\u003e\n\nThe graph layout was calculated using gephi\u0027s Force Atlas 2 algorithm with LinLog mode activated and the \"Prevent Overlap\" option added after the layout had stabilized. \nThe graph was then exported to a webapp using the SigmaJs Exporter plugin (provided graciously by the Oxford Internet Institute), and then a few configuration parameters\nwere adjusted manually to finish the visualization.\n\n\u003cbr\u003e\u003cbr\u003e\n\nThe data set can also be explored at http://subredditmentions.com, a webapp by the author of this visualization which visualizes \noccurences of subreddit mentions overlaid on top of the traffic statistics for the \"mentioned\" subreddit.",
-    "intro": "\u003ch3\u003eSummary\u003c/h3\u003e\u003cbr\u003e\u003cbr\u003e\n\nA visualization of the community structure of reddit inferred from how subreddits are talked about across the website.\nThe strength of a relationship between two subreddits is the count of unique users who mentioned one subreddit from within the other\n(essentially treating the data as \"votes\" in favor of a relationship).\n"
+    "more": "\u003cbr\u003e\u003ch3\u003eSummary\u003c/h3\u003e\u003cbr\u003e\n\nA visualization of the community structure of reddit inferred from how subreddits are talked about across the website.\n\n\u003cbr\u003e\u003ch3\u003eMethodology\u003c/h3\u003e\u003cbr\u003e\n\nReddit comments were monitored for several months looking for references to subreddits (via \"/r/subedditName\" markdown syntax) in reddit comments. \nCounts of the numbers of users who mentioned a given subreddit in comments submitted to another subreddit were treated as \"votes\" in favor of the existence of a (directed) \nrelationship between the subreddit in which the comment occurred (source) and the mentioned subreddit (target). \nSubreddits were validated against /u/GoldenSights\u0027 \"Subreddit Birthdays dataset\" and only subreddits with at least 50 subscribers were included in the visualization.\nAdditionally, only relationships with at least 3 \"votes\" were considered strong enough to appear in this visualization\n\n\u003cbr\u003e\u003cbr\u003e\u003ch3\u003eTechnical Details\u003c/h3\u003e\u003cbr\u003e\u003cbr\u003e\n\nThe graph layout was calculated using gephi\u0027s Force Atlas 2 algorithm with LinLog mode activated and the \"Prevent Overlap\" option added after the layout had stabilized. \nThe graph was then exported to a webapp using the SigmaJs Exporter plugin (provided graciously by the Oxford Internet Institute), and then a few configuration parameters\nwere adjusted manually to finish the visualization.\n\n\u003cbr\u003e\u003cbr\u003e\n\nThe data set can also be explored at http://subredditmentions.com, a webapp by the author of this visualization which visualizes \noccurences of subreddit mentions overlaid on top of the traffic statistics for the \"mentioned\" subreddit.",
+    "intro": "\u003ch3\u003eSummary\u003c/h3\u003e\u003cbr\u003e\u003cbr\u003e\n\nA visualization of the community structure of reddit inferred from how subreddits are talked about across the website.\n"
   },
   "legend": {
     "edgeLabel": "Connections represent relationships inferred from \"subreddit mentions\" in comments (via /r/\u003csubredditName\u003e syntax).",
@@ -28,9 +28,9 @@
   },
   "sigma": {
     "graphProperties": {
-      "minEdgeSize": 0.5,
+      "minEdgeSize": 0.05,
       "maxNodeSize": 4,
-      "maxEdgeSize": 2,
+      "maxEdgeSize": 0.1,
       "minNodeSize": 0.07
     },
     "drawingProperties": {
