@@ -1,5 +1,5 @@
 #cd E:\Projects\subreddit_mentions_graph
-#C:\Users\davidmarx\Documents\Projects\Toy Projects\Subreddit_Mentions_Graph
+#cd C:\Users\davidmarx\Documents\Projects\Toy Projects\Subreddit_Mentions_Graph
 import sqlite3
 import pandas as pd
 import time
@@ -17,15 +17,11 @@ df = pd.read_sql("""
     GROUP BY LOWER(source_subr), LOWER(target_subr)
     HAVING COUNT(DISTINCT author) > 2
     """, conn)
-#df.to_csv('subreddit_edges.scv') # filter bad nodes out below
-
-######################################
 
 # Fold in goldensights' subreddit metadata.
 # https://github.com/voussoir/reddit/tree/master/SubredditBirthdays
 
 conn_gs = sqlite3.connect(r"sql.db")
-#gs_star = pd.read_sql("select * from subreddits", conn_gs)    
 n_subscribers_threshold = 50
 gs = pd.read_sql("""
     SELECT 
@@ -47,37 +43,11 @@ gs = pd.read_sql("""
         )
     """.format(n_subscribers_threshold), conn_gs)
 
-#4 submission types, 7 subreddit types. What is this?
-
-## This doesn't include our vote thresholding.
-#mentioned_nodes = pd.read_sql("""
-#    SELECT DISTINCT LOWER(source_subr) subr FROM mentions 
-#    UNION 
-#    SELECT DISTINCT LOWER(target_subr) subr FROM mentions""", conn)
-
-mentioned_nodes = pd.concat([df.source, df.target]).unique()
-
-#nodes = nodelist.merge(gs, how="inner", left_on="subr", right_on="name_lwr")
-#nodes = gs[gs["name_lwr"].isin(mentioned_nodes['subr'])]
-nodes = gs[gs["name_lwr"].isin(mentioned_nodes)]
-
 ### Filter down edgelist to valid nodes
-#df = df.merge(nodes[['name','name_lwr']], how="inner", left_on="source", right_on="name_lwr")
-#df.source = df.name
-#df = df[["source","target","weight"]].merge(nodes[['name','name_lwr']], how="inner", left_on="target", right_on="name_lwr")
-#df.target = df.name
-#df = df[["source","target","weight"]]
-###df.to_csv('subreddit_edges.csv')
-
-#df2 = df[df["source"].isin(nodes["name_lwr"])]
-#df3 = df2[df2["target"].isin(nodes["name_lwr"])]
-
-
+mentioned_nodes = pd.concat([df.source, df.target]).unique()
+nodes = gs[gs["name_lwr"].isin(mentioned_nodes)]
 df = df[df["source"].isin(nodes["name_lwr"])]
 df = df[df["target"].isin(nodes["name_lwr"])]
-
-#nodes['id'] = nodes.name
-#nodes[["id","created_date","nsfw","subscribers"]].to_csv('nodelist.csv')
 
 # Construct an gexf dump of the graph to facilitate (hopefully?) importing to gephi
 
