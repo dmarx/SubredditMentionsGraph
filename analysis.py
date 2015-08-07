@@ -40,7 +40,11 @@ gs = pd.read_sql("""
         submission_type
     FROM subreddits
     WHERE 1=1
-        AND subscribers >= {}
+        AND (subscribers >= {}
+        OR subreddit_type in (2,3,6) --private, archived, gold
+        OR lower(name) in ('jailbait', 'fatpeoplehate', 'hamplanethatred', 
+        'transfags', 'neofag', 'shitniggersay', 'thefappening')
+        )
     """.format(n_subscribers_threshold), conn_gs)
 
 #4 submission types, 7 subreddit types. What is this?
@@ -83,7 +87,7 @@ node_tuples = [(n['name_lwr'],
                  'URL':"http://www.reddit.com/r/{}".format(n['name']), 
                  'NSFW':n.nsfw==1, 
                  'Number of Subscribers':n.subscribers,
-                 'log_subscribers':int(np.floor(np.log(n.subscribers))) + 1
+                 'log_subscribers':int(np.floor(np.log(n.subscribers + 1))) + 1
                  }) for _,n in nodes.iterrows()]
 g=nx.DiGraph()
 g.add_nodes_from(node_tuples)
