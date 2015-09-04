@@ -1,0 +1,44 @@
+<head>
+    <!--
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+    <script src="load_graph.js"></script>
+    -->
+    <script src="http://d3js.org/d3.v3.min.js"></script> 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    
+</head>
+
+<body>
+    <div id="chart"/>
+</body>
+
+<!-- Load Graph -->
+<script src="dynamic_graph.js"></script> 
+
+<script>
+    var width = $(window).width(),
+        height = $(window).height();
+
+    var zoom = d3.behavior.zoom()
+            .scaleExtent([1, 10])
+            .on("zoom", zoomed);
+
+    function zoomed() {
+        svg.attr("transform",
+            "translate(" + d3.event.translate + ")"
+            + " scale(" + d3.event.scale + ")");
+    };
+    
+    var svg = d3.select("#chart")
+          .append("svg")
+          .attr("id", "network")
+          .attr("width", width)    
+          .attr("height", height)
+          .attr("viewBox","0 0 "+ width + " " + height)
+          .attr("preserveAspectRatio","xMidYMid")
+          .call(zoom)
+          .on("dblclick.zoom", null)          
+        .append('g');
+        
+    
+</script>
