@@ -12,7 +12,9 @@ import datetime as dt
 try:
     import ujson as json
 except:
-    import json # I don't think this can handle datetime objects. Neither handles numpy.
+    import json # I don't think this can handle datetime objects. 
+                # Neither handles numpy.
+                # ... wait... shouldn't be datetime. Should coerce to epoch anyway.
 
 conn = sqlite3.connect(r"subreddit_mentions.db")
 conn_gs = sqlite3.connect(r"sql.db")
@@ -125,6 +127,9 @@ def collapse_graph_snapshots(graphs, layout=None):
             if nodes.has_key(n):
                 nodes[n]['cx'] = float(xy[0])
                 nodes[n]['cy'] = float(xy[1])
+        for n in nodes.keys():
+            if not layout.has_key(n):
+                nodes.pop(n)
     return {'nodes':nodes.values(), 'edges':edges.values()}
     
 def calculate_layout(graph):
