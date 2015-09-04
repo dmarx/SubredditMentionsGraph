@@ -12,7 +12,7 @@ import datetime as dt
 try:
     import ujson as json
 except:
-    import json
+    import json # I don't think this can handle datetime objects. Neither handles numpy.
 
 conn = sqlite3.connect(r"subreddit_mentions.db")
 conn_gs = sqlite3.connect(r"sql.db")
@@ -99,14 +99,14 @@ def get_graphs_in_range(start,
         end = start + window
     return graphs
     
-def collapse_graph_snapshots(graphs):
+def collapse_graph_snapshots(graphs, layout=None):
     """
     Takes a list of graphs (output from get_graphs_in_range) and returns a 
     single json object where each edge has a "snapshots" attribute that gives
     tuples of (timestamp, weight) for each snapshot during which the edge was
     live.
     """
-    edges, nodes, nodeslist = {}, [], []
+    edges, nodes, nodeslist = {}, {}, []
     for g_dict in graphs:
         g = g_dict['graph']
         g['edges']['e_str'] = g['edges']['source'] + '~' + g['edges']['target']
@@ -115,10 +115,17 @@ def collapse_graph_snapshots(graphs):
                 edges[e.e_str] = {'source':e.source, 'target':e.target, 'snapshots':[]}
             edges[e.e_str]['snapshots'].append( (g_dict['end'], e.weight) )
         for n in g['nodes']:
-            if n[0] not in nodeslist:
-                nodeslist.append(n[0])
-                nodes.append(n[1])
-    return {'nodes':nodes, 'edges':edges.values()}
+            #if n[0] not in nodeslist:
+                #nodeslist.append(n[0])
+                #nodes.append(n[1])
+            if not nodes.has_key(n[0]):
+                nodes[n[0]] = n[1]
+    if layout:
+        for n, xy in layout.iteritems():
+            if nodes.has_key(n):
+                nodes[n]['cx'] = float(xy[0])
+                nodes[n]['cy'] = float(xy[1])
+    return {'nodes':nodes.values(), 'edges':edges.values()}
     
 def calculate_layout(graph):
     return nx.spring_layout(graph) # Change to Force Atlas later.
@@ -130,14 +137,13 @@ if __name__ == '__main__':
     interval = dt.timedelta(days=7)
     fname    = 'dynamic_graph.json'
     
-    graphs = get_graphs_in_range(start, end)
-    j = collapse_graph_snapshots(graphs)
-    
     # Calculate layout on collapsed graph (union of subgraphs), apply as node
     # attribute
     full = get_graph_snapshot(start, end)
     layout = calculate_layout(full['g'])
     
+    graphs = get_graphs_in_range(start, end)
+    j = collapse_graph_snapshots(graphs, layout)
     
     with open(fname, 'wb') as f:
         f.write(json.dumps(j))
