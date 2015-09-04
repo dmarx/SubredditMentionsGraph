@@ -96,7 +96,7 @@ def get_graphs_in_range(start,
     end = start + window
     while end <= high:
         g = get_graph_snapshot(start, end, n_subscribers_threshold)
-        graphs.append({'graph':g, 'start':start, 'end':end})
+        graphs.append({'graph':g, 'start':dt_to_epoch(start), 'end':dt_to_epoch(end)})
         start = start + increment
         end = start + window
     return graphs
