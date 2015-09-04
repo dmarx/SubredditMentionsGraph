@@ -120,6 +120,9 @@ def collapse_graph_snapshots(graphs):
                 nodes.append(n[1])
     return {'nodes':nodes, 'edges':edges.values()}
     
+def calculate_layout(graph):
+    return nx.spring_layout(graph) # Change to Force Atlas later.
+    
 if __name__ == '__main__':
     start    = dt.datetime(2015,01,01)
     end      = dt.datetime.utcnow()
@@ -129,6 +132,12 @@ if __name__ == '__main__':
     
     graphs = get_graphs_in_range(start, end)
     j = collapse_graph_snapshots(graphs)
+    
+    # Calculate layout on collapsed graph (union of subgraphs), apply as node
+    # attribute
+    full = get_graph_snapshot(start, end)
+    layout = calculate_layout(full['g'])
+    
     
     with open(fname, 'wb') as f:
         f.write(json.dumps(j))
