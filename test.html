@@ -12,8 +12,11 @@
     <div id="chart"/>
 </body>
 
-<!-- Load Graph -->
+<!-- Load Graph 
 <script src="dynamic_graph_pos.js"></script> 
+<script src="dynamic_graph_loglayout.js"></script> 
+-->
+<script src="dynamic_graph_fa2.js"></script> 
 
 <script>
     var width = $(window).width(),
@@ -68,8 +71,8 @@
     node.append("circle")
         .attr("class", "node")
         .attr("id",function(d) { return 'x' + d.Name;})
-        .attr("cx",function(d) { return d.cx * width;})
-        .attr("cy",function(d) { return d.cy * height;})
+        .attr("cx",function(d) { return d.cx * width/10;})
+        .attr("cy",function(d) { return d.cy * height/10;})
         .attr("r", 12)
         .style("opacity", .1)
         ;
