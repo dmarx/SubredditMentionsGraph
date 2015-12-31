@@ -105,3 +105,29 @@ nx.draw(pokemon, pos=layout)
 nx.draw_networkx_labels(pokemon,pos=layout) # Why doesn't this include the pokemon node? Why are there islands?
 plt.show()
 
+mean_graphs = []
+window_len = 9
+for i in range(len(filtered_graphs) - window_len):
+    cntr = construct_mean_graph_counter(filtered_graphs[i:(window_len+i)])
+    G = nx.DiGraph()
+    G.add_edges_from([ (k[0], k[1], {'weight':v}) for k,v in adj.iteritems() ])
+    mean_graphs.append(G)
+    
+subreddit = 'pokemon'
+ego = []
+for fg in filtered_graphs:
+    try:
+        e_i = directed_ego_graph(fg, 'pokemon')
+        ego.append(e_i)
+    except nx.NetworkXError:
+        ego.append(None)
+    
+mean_graphs.reverse()
+ego.reverse()
+
+for i in range(len(mean_graphs)):
+    g1 = ego[i]
+    if g1 is not None:
+        g2 = directed_ego_graph(mean_graphs[i], 'pokemon')
+        print i, graph_jaccard(g1, g2), len(g1), len(g2)
+    

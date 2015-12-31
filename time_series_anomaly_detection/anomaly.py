@@ -298,6 +298,13 @@ def jaccard_coef(a,b):
     b_s = set(b)
     return len(a_s.intersection(b_s)) / len(a_s.union(b_s))
     
+def graph_jaccard(g1, g2):
+    e1 = set(g1.edges())
+    e2 = set(g2.edges())
+    intersection = e1.intersection(e2)
+    union = e1.union(e2)
+    return len(intersection) / len(union)
+    
 def mean_graph_jaccard(graphs, target_ix=-1, return_adj = False, adj=None): # appears to be slower than GED alternative
     """
     Given a list of graphs, returns a graph defined by the set of all edges
