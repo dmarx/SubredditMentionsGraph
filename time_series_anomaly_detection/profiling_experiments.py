@@ -86,3 +86,22 @@ start = time.time()
 test = construct_mean_graph(filtered_graphs[:10], as_adjacency=False)
 end = time.time()
 print end - start # 1.55s!!!
+
+askreddit = directed_ego_graph(test, 'askreddit')
+layout = nx.spring_layout(pokemon)
+nx.draw(askreddit, pos=layout)
+nx.draw_networkx_labels(askreddit,pos=layout)
+
+start = time.time()
+adj = construct_mean_graph_counter(filtered_graphs[:10])
+G = nx.DiGraph()
+G.add_edges_from([ (k[0], k[1], {'weight':v}) for k,v in adj.iteritems() ])
+end = time.time()
+print end - start # 2.05. A bit slower than the sparse matrix approach, but it looks like it at least works.
+
+pokemon = directed_ego_graph(G, 'pokemon')
+layout = nx.spring_layout(pokemon, iterations=150)
+nx.draw(pokemon, pos=layout)
+nx.draw_networkx_labels(pokemon,pos=layout) # Why doesn't this include the pokemon node? Why are there islands?
+plt.show()
+
