@@ -342,8 +342,14 @@ def construct_mean_graph(graphs, as_adjacency=True, nodes=None, format='csr'):
         else:
             adj = g_adj
     adj = binarize(adj, threshold=len(graphs)/2)
+    retval = adj
     
-    return adj
+    if not as_adjacency:
+        g = nx.from_scipy_sparse_matrix(adj)
+        nodes_map = dict((ix, name) for ix, name in enumerate(nodes))
+        g = nx.relabel_nodes(g, nodes_map)
+        retval = g
+    return retval
     
 def construct_mean_graph_counter(graphs, as_adjacency=True, nodes=None):
     if nodes is None:
@@ -368,7 +374,15 @@ def construct_mean_graph_counter(graphs, as_adjacency=True, nodes=None):
     for key, count in dropwhile(lambda key_count: key_count[1] >= threshold, adj.most_common()):
         del adj[key]
     
-    return adj
+    retval = adj
+    
+    if not as_adjacency:
+        g = nx.from_scipy_sparse_matrix(adj)
+        nodes_map = dict((ix, name) for ix, name in enumerate(nodes))
+        g = nx.relabel_nodes(g, nodes_map)
+        retval = g
+    
+    return retval
     
 def mean_graph_ged(graphs, target_ix=-1, return_adj = False, adj=None):
     """
@@ -424,7 +438,9 @@ def mean_graph_ged_ratio(graphs, target_ix=-1, target_is_denominator=False, defa
 def directed_ego_graph(g, n, radius=1):
     """Ego graph where radius is only relative to successors of root node"""
     if radius == 1:
-        return nx.subgraph(g, g.neighbors(n)) # Not sure this saves any time relative to just running everything using the code in the 'else' clause
+        nodes = g.neighbors(n)
+        nodes.append(n)
+        return nx.subgraph(g, nodes) # Not sure this saves any time relative to just running everything using the code in the 'else' clause
     else:
         distance = {n:0} # we'll track what we've visited here.
         for parent, child in nx.bfs_edges(g, n):

@@ -68,3 +68,21 @@ adj1 = nx.to_scipy_sparse_matrix(g1, nodelist=nodes)
 adj2 = nx.to_scipy_sparse_matrix(g1, nodelist=nodes)
 
 %timeit naive_graph_edit_distance_adj(adj1, adj2)
+
+#################################
+
+start = time.time()
+test = construct_mean_graph(filtered_graphs[:3])
+end = time.time()
+print end - start # .384s 
+
+
+start = time.time()
+test = construct_mean_graph(filtered_graphs[:10])
+end = time.time()
+print end - start # 1.24s!
+
+start = time.time()
+test = construct_mean_graph(filtered_graphs[:10], as_adjacency=False)
+end = time.time()
+print end - start # 1.55s!!!
