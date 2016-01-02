@@ -329,15 +329,16 @@ def mean_graph_jaccard(graphs, target_ix=-1, return_adj = False, adj=None): # ap
         retval['adj_mean_graph'] = adj
     return retval
 
-    
+def build_nodelist(graphs):
+    nodes = set()
+    for g in graphs:
+        nodes.update(g.nodes())
+    nodes = list(nodes)
+    return nodes
     
 def construct_mean_graph(graphs, as_adjacency=True, nodes=None, format='csr'):
     if nodes is None:
-        # Build nodelist
-        nodes = set()
-        for g in graphs:
-            nodes.update(g.nodes())
-        nodes = list(nodes)
+        nodes = build_nodelist(graphs)
     
     # Count edge expectations
     adj=None
@@ -360,11 +361,7 @@ def construct_mean_graph(graphs, as_adjacency=True, nodes=None, format='csr'):
     
 def construct_mean_graph_counter(graphs, as_adjacency=True, nodes=None):
     if nodes is None:
-        # Build nodelist
-        nodes = set()
-        for g in graphs:
-            nodes.update(g.nodes())
-        nodes = list(nodes)
+        nodes = build_nodelist(graphs)
     
     # Count edge expectations
     adj=None
