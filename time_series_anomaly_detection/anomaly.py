@@ -497,7 +497,7 @@ def jaccard_all(graphs, window_len, alpha=None, verbose=False):
     scores = {}
     nodes = build_nodelist(graphs)
     for node in nodes:
-        if verbose: print node
+        #if verbose: print node
         scores[node] = []
         for i in reversed(range(len(mean_graphs))):
             #print i, node
@@ -507,14 +507,34 @@ def jaccard_all(graphs, window_len, alpha=None, verbose=False):
                 ego_g  = directed_ego_graph(g,  node)
                 ego_mg = directed_ego_graph(mg, node)
                 score = graph_jaccard(ego_g, ego_mg)
-                scores[node].append(score)
             except nx.NetworkXError:
                 #print i, node, "[ERROR]"
-                scores[node].append(None)
-            #except ZeroDivisionError
-            #    scores[node].append(0)
+                score = None
+            scores[node].append(score)
+            try:
+                #g[node]['score'] = score
+                nx.set_node_attributes(g, 'score', {node:score})
+            except KeyError :
+                continue
             
-    return scores
+    scan = {} # neighborhood mean for now
+    for node in nodes:
+        scan[node] = []
+        for i in reversed(range(len(mean_graphs))):
+            g = graphs[i]
+            try:
+                ego_g  = directed_ego_graph(g,  node)
+                mean = np.mean([data['score'] for n, data in ego_g.nodes_iter(data=True) if data['score'] is not None])
+            except nx.NetworkXError:
+                mean = None
+            #g[node]['neighborhood_mean'] = mean
+            try:
+                nx.set_node_attributes(g, 'neighborhood_mean', {node:mean})
+            except KeyError:
+                pass
+            scan[node].append(mean)
+            
+    return {'scores':scores, 'neighborhood_means':scan, 'graphs':graphs}
             
 # Via http://stackoverflow.com/questions/6822725/rolling-or-sliding-window-iterator-in-python
 def window(seq, n=2):
