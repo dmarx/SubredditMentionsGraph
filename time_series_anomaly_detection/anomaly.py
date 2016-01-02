@@ -301,16 +301,14 @@ def jaccard_coef(a,b):
 def graph_jaccard(g1, g2):
     return jaccard_coef(g1.edges(), g2.edges())
     
-def mean_graph_jaccard(graphs, target_ix=-1, return_adj = False, adj=None): # appears to be slower than GED alternative
+def mean_graph_jaccard(graphs, target_ix=-1, return_adj = False, adj=None, nodes=None): # appears to be slower than GED alternative
     """
     Given a list of graphs, returns a graph defined by the set of all edges
     that appear in at least half of the input graphs
     """
     # Build nodelist
-    nodes = set()
-    for g in graphs:
-        nodes.update(g.nodes())
-    nodes = list(nodes)
+    if nodes is None:
+        nodes = build_nodelist(graphs)
     
     # Count edge expectations
     adj = construct_mean_graph_counter(graphs, nodes=nodes)
@@ -318,7 +316,7 @@ def mean_graph_jaccard(graphs, target_ix=-1, return_adj = False, adj=None): # ap
     # Get edit distance
     g_target = graphs[target_ix]
     #adj_target = nx.adjacency_matrix(g_target, nodelist=nodes)
-    adj_target = Counter(g_target)
+    adj_target = Counter(g_target.edges())
     #retval = {'ged':naive_graph_edit_distance_adj(adj, adj_target)}
     retval = {'ged':jaccard_coef(adj.keys(), adj_target.keys())}
     if return_adj:

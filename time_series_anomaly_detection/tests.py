@@ -106,3 +106,13 @@ def test__graph_jaccard__correct():
     vals1 = [a.graph_jaccard(test_mean, g) for g in graphs]
     vals2 = [6/7, 5/7, 5/7, 5/8, 5/8]
     return all(x==y for x,y in zip(vals1, vals2))
+    
+def test__mean_graph_jaccard():
+    for t in range(len(graphs)):
+        v1 = a.mean_graph_jaccard(graphs, target_ix=t)['ged']
+        v2 = a.graph_jaccard(test_mean, graphs[t])
+        if v1 != v2:
+            print t
+            return False
+    return True
+    
