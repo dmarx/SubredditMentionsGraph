@@ -381,9 +381,8 @@ def construct_mean_graph_counter(graphs, as_adjacency=True, nodes=None):
     retval = adj
     
     if not as_adjacency:
-        g = nx.from_scipy_sparse_matrix(adj)
-        nodes_map = dict((ix, name) for ix, name in enumerate(nodes))
-        g = nx.relabel_nodes(g, nodes_map)
+        g = nx.DiGraph()
+        g.add_edges_from([ (k[0], k[1], {'weight':v}) for k,v in adj.iteritems() ])
         retval = g
     
     return retval

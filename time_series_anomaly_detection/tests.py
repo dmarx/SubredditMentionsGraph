@@ -91,7 +91,6 @@ def test__construct_mean_graph__adj():
     comp = mean_adj.multiply(test_adj)
     
     return comp.sum() == mean_adj.sum() == test_adj.sum()
-    
 
 def test__construct_mean_graph__graph():
     mean_g = a.construct_mean_graph(graphs, as_adjacency=False)
