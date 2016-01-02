@@ -353,7 +353,7 @@ def construct_mean_graph(graphs, as_adjacency=True, nodes=None, format='csr'):
     retval = adj
     
     if not as_adjacency:
-        g = nx.from_scipy_sparse_matrix(adj)
+        g = nx.from_scipy_sparse_matrix(adj, create_using=nx.DiGraph())
         nodes_map = dict((ix, name) for ix, name in enumerate(nodes))
         g = nx.relabel_nodes(g, nodes_map)
         retval = g
