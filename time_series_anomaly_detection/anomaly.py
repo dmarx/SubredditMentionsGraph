@@ -516,6 +516,7 @@ def jaccard_all(graphs, window_len, alpha=None, verbose=False):
                 nx.set_node_attributes(g, 'score', {node:score})
             except KeyError :
                 continue
+        scores[node].reverse()
             
     scan = {} # neighborhood mean for now
     for node in nodes:
@@ -533,7 +534,10 @@ def jaccard_all(graphs, window_len, alpha=None, verbose=False):
             except KeyError:
                 pass
             scan[node].append(mean)
+        scan[node].reverse()
             
+    #scores.reverse()
+    #scan.reverse()
     return {'scores':scores, 'neighborhood_means':scan, 'graphs':graphs}
             
 # Via http://stackoverflow.com/questions/6822725/rolling-or-sliding-window-iterator-in-python
@@ -561,8 +565,8 @@ if __name__ == '__main__':
     graphs = get_time_graphs_range(conn, 
                                    t_start, 
                                    t_end, 
-                                   interval_length = 7 * (60*60*24),
-                                   delta           = 7 * (60*60*24),
+                                   interval_length = 3 * (60*60*24),
+                                   delta           = 1 * (60*60*24),
                                    verbose=True
                                    )
     ## Wrap this block in a function
@@ -597,8 +601,10 @@ if __name__ == '__main__':
         
     #filtered_graphs = [filter_graph(g, alpha=.1, return_filtered_copy=True)['filtered_graph'] for g in graphs]
     filtered_graphs = []
+    times = []
     for g_t in graphs:
         t0, t1, g = g_t
+        times.append(t1)
         fg = filter_graph(g, alpha=.1, return_filtered_copy=True)['filtered_graph']
         filtered_graphs.append(fg)
         print "{} {} | ({} {}) -> ({} {})".format(t0,t1, len(g), len(g.edges()), len(fg), len(fg.edges()))
@@ -606,3 +612,11 @@ if __name__ == '__main__':
     #n_graphs=5
     #results = window_apply(filtered_graphs, n_graphs, ged_all)
     #test = ged_all(filtered_graphs[:5], verbose=True)
+    test = jaccard_all(filtered_graphs, 6)
+    df = pd.DataFrame(test['neighborhood_means'])
+    scan = df[df>0].min(axis=1)
+    
+    import matplotlib.pyplot as plt
+    
+    plt.plot(times, scan)
+    plt.show()
