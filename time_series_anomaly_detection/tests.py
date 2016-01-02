@@ -116,3 +116,8 @@ def test__mean_graph_jaccard():
             return False
     return True
     
+def test__build_nodelist():
+    nodes = a.build_nodelist(graphs)
+    nodes.sort()
+    vals = ['a','b','c','d','e','f','g','h','i','j','x','y','z']
+    return nodes == vals
