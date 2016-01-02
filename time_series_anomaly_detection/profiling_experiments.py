@@ -87,6 +87,8 @@ test = construct_mean_graph(filtered_graphs[:10], as_adjacency=False)
 end = time.time()
 print end - start # 1.55s!!!
 
+################################3
+
 askreddit = directed_ego_graph(test, 'askreddit')
 layout = nx.spring_layout(pokemon)
 nx.draw(askreddit, pos=layout)
@@ -107,6 +109,7 @@ plt.show()
 
 #################
 
+start = time.time()
 mean_graphs = []
 window_len = 9
 for i in range(len(filtered_graphs) - window_len):
@@ -114,8 +117,12 @@ for i in range(len(filtered_graphs) - window_len):
     G = nx.DiGraph()
     G.add_edges_from([ (k[0], k[1], {'weight':v}) for k,v in cntr.iteritems() ])
     mean_graphs.append(G)
+end = time.time()
+print end - start # 14.7s to build all mean graphs
     
-subreddit = 'fatpeoplehate'
+start = time.time()
+#subreddit = 'fatpeoplehate'
+subreddit = 'askreddit'
 ego = []
 for fg in filtered_graphs:
     try:
@@ -123,13 +130,20 @@ for fg in filtered_graphs:
         ego.append(e_i)
     except nx.NetworkXError:
         ego.append(None)
-    
+end = time.time()
+print end - start # .05s to extract ego networks for a single subreddit
+        
+start = time.time()
 mean_graphs.reverse()
 ego.reverse()
-
 for i in range(len(mean_graphs)):
     g1 = ego[i]
     if g1 is not None:
         g2 = directed_ego_graph(mean_graphs[i], subreddit)
         print i, graph_jaccard(g1, g2), len(g1), len(g2)
-    
+end = time.time()
+print end - start # .04 seconds to calculate jaccard for a single subreddit across all time slices
+
+##########################
+
+%timeit a.jaccard_all(filtered_graphs, 5, verbose=True) # 3s with counter

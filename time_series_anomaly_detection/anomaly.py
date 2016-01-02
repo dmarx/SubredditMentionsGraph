@@ -296,7 +296,12 @@ def naive_graph_edit_distance(g1, g2):
 def jaccard_coef(a,b):
     a_s = set(a)
     b_s = set(b)
-    return len(a_s.intersection(b_s)) / len(a_s.union(b_s))
+    numr = len(a_s.intersection(b_s)) 
+    denom = len(a_s.union(b_s))
+    if denom == 0:
+        return 0
+    else:
+        return numr / denom
     
 def graph_jaccard(g1, g2):
     return jaccard_coef(g1.edges(), g2.edges())
@@ -353,9 +358,7 @@ def construct_mean_graph(graphs, as_adjacency=True, nodes=None, format='csr'):
         retval = g
     return retval
     
-def construct_mean_graph_counter(graphs, as_adjacency=True, nodes=None):
-    if nodes is None:
-        nodes = build_nodelist(graphs)
+def construct_mean_graph_counter(graphs, as_adjacency=True):
     
     # Count edge expectations
     adj=None
@@ -472,7 +475,47 @@ def ged_all(graphs, radius = 1, target_ix=-1, score_as_ratio=True, target_is_den
         else:
             score[n] = mean_graph_ged(graphs, target_ix)
     return score
-        
+    
+# Alternative function that runs on precalculated mean graphs
+def jaccard_all(graphs, window_len, alpha=None, verbose=False):
+    if alpha is not None:
+        filtered_graphs = []
+        for g in graphs:
+            fg = filter_graph(g, alpha=alpha, return_filtered_copy=True)['filtered_graph']
+            filtered_graphs.append(fg)
+        graphs = filtered_graphs
+    
+    mean_graphs = []
+    for i in range(len(graphs) - window_len):
+        cntr = construct_mean_graph_counter(graphs[i:(window_len+i)])
+        G = nx.DiGraph()
+        G.add_edges_from([ (k[0], k[1], {'weight':v}) for k,v in cntr.iteritems() ])
+        mean_graphs.append(G)
+    
+    # Loop through nodes. For each node, extract ego graph from time slice and compare with
+    # ego graph from corresponding mean graph.
+    scores = {}
+    nodes = build_nodelist(graphs)
+    for node in nodes:
+        if verbose: print node
+        scores[node] = []
+        for i in reversed(range(len(mean_graphs))):
+            #print i, node
+            g = graphs[i]
+            mg = mean_graphs[i]
+            try:
+                ego_g  = directed_ego_graph(g,  node)
+                ego_mg = directed_ego_graph(mg, node)
+                score = graph_jaccard(ego_g, ego_mg)
+                scores[node].append(score)
+            except nx.NetworkXError:
+                #print i, node, "[ERROR]"
+                scores[node].append(None)
+            #except ZeroDivisionError
+            #    scores[node].append(0)
+            
+    return scores
+            
 # Via http://stackoverflow.com/questions/6822725/rolling-or-sliding-window-iterator-in-python
 def window(seq, n=2):
     it = iter(seq)
