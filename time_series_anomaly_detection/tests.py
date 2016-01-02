@@ -1,3 +1,4 @@
+from __future__ import division
 import anomaly as a
 
 import networkx as nx
@@ -95,3 +96,13 @@ def test__construct_mean_graph__adj():
 def test__construct_mean_graph__graph():
     mean_g = a.construct_mean_graph(graphs, as_adjacency=False)
     return set(list(mean_g.edges())) == set(list(test_mean.edges()))
+    
+def test__graph_jaccard__commutative():
+    vals1 = [a.graph_jaccard(test_mean, g) for g in graphs]
+    vals2 = [a.graph_jaccard(g, test_mean) for g in graphs]
+    return all(x==y for x,y in zip(vals1, vals2))
+
+def test__graph_jaccard__correct():
+    vals1 = [a.graph_jaccard(test_mean, g) for g in graphs]
+    vals2 = [6/7, 5/7, 5/7, 5/8, 5/8]
+    return all(x==y for x,y in zip(vals1, vals2))
