@@ -435,6 +435,18 @@ def mean_graph_ged_ratio(graphs, target_ix=-1, target_is_denominator=False, defa
         retval = ged['ged']/denom
     return retval
         
+def invert_graph(g):
+    """
+    Returns a copy of the input graph where the direction of all edges is 
+    reversed.
+    """
+    source, target, weight = zip(*g.edges(data=True))
+    inv_edges = zip(target, source, weight)
+    g2 = nx.DiGraph()
+    g2.add_nodes_from(g.nodes(data=True))
+    g2.add_edges_from(inv_edges)
+    return g2
+        
 def directed_ego_graph(g, n, radius=1):
     """Ego graph where radius is only relative to successors of root node"""
     if radius == 1:
