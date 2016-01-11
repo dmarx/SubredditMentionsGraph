@@ -26,9 +26,10 @@ def normalize_graph(g):
     return g
 
 def edge_significance(p_ij, k):
-    def integrand(x):
-        return np.power(1-x, k-2)
-    return 1 - (k-1) * sp.integrate.quad(integrand, 0, p_ij)[0]
+    #def integrand(x):
+    #    return np.power(1-x, k-2)
+    #return 1 - (k-1) * sp.integrate.quad(integrand, 0, p_ij)[0]
+    return (1-p_ij)**(k-1)
 
 def filter_graph(g, alpha, return_filtered_copy=True):
     g = normalize_graph(g)
@@ -44,7 +45,9 @@ def filter_graph(g, alpha, return_filtered_copy=True):
         g[u][v]['significance'] = p
         g[u][v]['is_significant'] = p<alpha
         if return_filtered_copy and p<alpha:
-            g2.add_edge(u,v, {'weight':w, 'significance':p})
+            #g2.add_edge(u,v, {'weight':w, 'significance':p})
+            g2.add_edge(u,v, {'weight':g[u][v]['weight'], 'normalized_weight':w 'significance':p})
+            # Need to recover node metadata without introducing island nodes.
     retval = {'graph':g}
     if return_filtered_copy:
         retval['filtered_graph'] = g2
