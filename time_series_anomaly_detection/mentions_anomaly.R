@@ -79,3 +79,28 @@ count_connected_nodes =  function(g){length(component_distribution(g))}
 n_nodes = sapply(graphs, count_connected_nodes)
 plot(d_seq[-1], n_nodes)
 # It looks like the size of the giant component has actually been *decreasing* over the past year. Very strange.
+
+# Daily count of unique users making subreddit mentioning comments as a proxy
+# for quantifying the size of the active userbase overtime (i.e. is the community shrinking?)
+active_users = mentions[,list(count=length(unique(author))), by=list(year, month, day, wday)]
+active_users[,date:=ymd(paste(year, month, day, sep='-'))]
+active_users$index = 1:nrow(active_users)-1
+active_users[,plot(date, count, type='l')] # oh shit... definitely shrinking, but plateauing. Looks like it's actually shrunk by about half
+mod = lm(count~index, active_users)
+mod2 = lm(count~date, active_users) # just for display purposes
+abline(mod2, lty=2, col='blue')
+summary(mod)
+summary(mod)
+coef(mod) 
+# For the last year, Reddit has been shrinking by about 18 (subreddit mentioning) people a day.
+# It's not clear whether or not this is a true shrinking of the community or perhaps
+# just them getting better at fighting bots and spam, but I strongly suspect it is in
+# fact the former. Would be great if my dataset went further back.
+
+# To show that this is an accurate proxy, I'd need to pull down the number of unique coment
+# authors day-over-day (which would really be a better way of doing this anyway). I'm just
+# counting people who mention subreddits. The size of the shirnkage is almost certainly more
+# than 18 people a day, just as the active user base is absolutely bigger than 5-10K people.
+
+# I should still compare this trend to the global active users to demonstrate that the
+# arrival rate of this particular class of comments is reflective of global user activity.
