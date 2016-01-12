@@ -1,3 +1,4 @@
+library(igraph)
 library(RSQLite)
 library(data.table)
 library(lubridate)
