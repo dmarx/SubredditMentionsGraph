@@ -46,7 +46,7 @@ def filter_graph(g, alpha, return_filtered_copy=True):
         g[u][v]['is_significant'] = p<alpha
         if return_filtered_copy and p<alpha:
             #g2.add_edge(u,v, {'weight':w, 'significance':p})
-            g2.add_edge(u,v, {'weight':g[u][v]['weight'], 'normalized_weight':w 'significance':p})
+            g2.add_edge(u,v, {'weight':g[u][v]['weight'], 'normalized_weight':w, 'significance':p})
             # Need to recover node metadata without introducing island nodes.
     retval = {'graph':g}
     if return_filtered_copy:
