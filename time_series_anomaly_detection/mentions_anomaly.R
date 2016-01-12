@@ -1,11 +1,8 @@
 library(RSQLite)
 library(data.table)
 library(lubridate)
-db_path = "E:/Projects/SubredditMentionsGraph/subreddit_mentions.db"
+db_path = "subreddit_mentions.db"
 conn = dbConnect(SQLite(), db_path)
-#dbListTables(conn)
-#dbGetQuery(conn, "select * from mentions limit 10")
-
 
 toEpoch = function(val){as.POSIXct(val, origin="1970-01-01")}
 
@@ -15,9 +12,6 @@ setkey(mentions, created_utc)
 
 nodelist = mentions[,union(Source, Target)]
 
-#drange = dbGetQuery(conn, "
-#  select min(created_utc) d_min, max(created_utc) d_max from mentions
-#  ")
 drange = mentions[,list(d_min=min(created_utc), d_max=max(created_utc))]
 drange = lapply(drange, toEpoch)
 drange$d_min = floor_date(drange$d_min, unit="day") + days(1)
@@ -26,24 +20,24 @@ drange$d_max = floor_date(drange$d_max, unit="day")
 d_seq = seq(from=drange$d_min, to=drange$d_max, by="week")
 d_seq_numeric = as.numeric(d_seq)
 
+start = Sys.time()
 graphs=list()
 for(i in 2:length(d_seq)){
   d1 = as.numeric(d_seq[i-1])
   d2 = as.numeric(d_seq[i])
   print(c(i,d2))
-  # Can't get bind variables to work. I'm not proud.
-#   sql = paste("select * from mentions 
-#               where created_utc > ", d1, 
-#               " and created_utc <= ", d2)
-#   records = data.table(dbGetQuery(conn, sql))
-#   setnames(records, c("source_subr_lwr", "target_subr_lwr"), c("Source", "Target"))
+  
   records = mentions[d1<created_utc & created_utc<=d2][,.(Source, Target, author)]
-  #records = records[,.(Source, Target, author)]
   setkey(records, Source, Target)
+  
   edges = records[,list(Weight=length(unique(author))), by=list(Source, Target)]
   g = graph.data.frame(edges, directed=TRUE, vertices=nodelist)
   graphs[as.character(d2)]=list(g)
 }
+end = Sys.time()
+elaps = end - start
+print(elaps) #
+
 
 start = Sys.time()
 test = scan_stat(graphs, tau=8) # Each graph is 1 week, so this is approx 2 months
