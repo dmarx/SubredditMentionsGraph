@@ -125,3 +125,16 @@ lines(exp(predict(mod_exp)), lty=2, col='red') # much better
 # reddit is losing about 0.26% of its userbase day-over-day since the beginning of the year.
 # We should try doing a two part model: break it up into chunks for the week before and two
 # weeks after the blackout. 
+pre_blackout  = active_users[date < ymd("2015-06-27")]
+post_blackout = active_users[date > ymd("2015-07-18")]
+
+mod_pre = lm(log(count)~index, pre_blackout)
+mod_post = lm(log(count)~index, post_blackout)
+summary(mod_pre)
+summary(mod_post) # reddit was already shrinking, but accelerated by an order of magnitude after the blackout
+# current shriknage rate = 0.12%
+plot(active_users$count, type='l')
+lines(exp(predict(mod_pre)), lty=2, col='blue')
+lines(post_blackout$index, exp(predict(mod_post)), lty=2, col='red')
+
+coef(mod_post)/coef(mod_pre) # After the blackout, reddit shrunk by about 2.4% and shrinkage rate increased by 12.5x
