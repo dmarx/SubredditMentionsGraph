@@ -104,3 +104,24 @@ coef(mod)
 
 # I should still compare this trend to the global active users to demonstrate that the
 # arrival rate of this particular class of comments is reflective of global user activity.
+
+perc_loss = (active_users$count[-nrow(active_users)] - active_users$count[-1])/active_users$count[-nrow(active_users)]
+plot(perc_loss)
+mod3 = lm(perc_loss~seq_along(perc_loss))
+summary(mod3)
+plot(density(perc_loss[perc_loss>-1 & perc_loss <1])) # noisy fluctuations
+mu = mean(perc_loss[perc_loss>-1 & perc_loss <1])
+# On average, shrinking by about 1.37% per day. 
+y_pred = c(active_users$count[1], active_users$count[-nrow(active_users)]*(1-mu))
+plot(active_users$count, type='l')
+plot(y_pred, col='red')
+xt = seq_along(active_users$count)
+lines(coef(mod)[1]*exp(-(mu)*xt)) # losing a lot fewer than 1.37 perc a day.
+
+mod_exp = lm(log(active_users$count)~active_users$index)
+summary(mod_exp)
+plot(active_users$count, type='l')
+lines(exp(predict(mod_exp)), lty=2, col='red') # much better 
+# reddit is losing about 0.26% of its userbase day-over-day since the beginning of the year.
+# We should try doing a two part model: break it up into chunks for the week before and two
+# weeks after the blackout. 
