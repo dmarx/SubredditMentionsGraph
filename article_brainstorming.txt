@@ -1,0 +1,34 @@
+* Introduce a novel dataset
+  --> TO DO: 
+    - Basic graph statistics (see below)
+    - post to figshare
+* Demonstrate that the activity in this dataset is a good proxy for global activity
+  --> TO DO: 
+    - compare graph statistics to those observed by rhiever
+      - number of nodes
+      - number of edges
+      - clustering coefficient
+      - # of communities
+      - power law fit
+      - avg shortest path length
+      - modularity
+      - small-worldness score
+    - Compare counts of unique active user in the mentions data vs. the public comments dataset
+* Community detection
+      - Compare communities to rhievers communities
+* Novel graph analysis of reddit (as a dynamic rather than a static graph)
+* Apply graph anomaly detection to highlight periods of instability
+* Demonstrate the effect this instability has had on the growth rate of the community graph and the active population
+  - Accelerated rate of decline of active population
+  - Subreddit graph flipped from slowly growing to more rapidly shrinking
+  
+Discussion
+* ?
+
+Conclusions
+* Support scan statistic method for anomaly detection
+* The events of 2015 have had a significant impact both on the magnitude and the topology of the reddit community
+
+Citations:
+* scan statistics on enron graphs
+* backbone networks on reddit (rhiever 2013)
