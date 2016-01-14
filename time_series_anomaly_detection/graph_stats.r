@@ -9,7 +9,7 @@
 - small-worldness score
 "
 
-calc_graph_stats = function(g){
+calc_graph_stats = function(g, n_comm=FALSE){
   retval = list()
   
   # number of nodes
@@ -19,7 +19,12 @@ calc_graph_stats = function(g){
   retval['n_edges'] = ecount(g)
   
   # clustering coeefficient / power law fit (?)
-  retval['transitivity'] = transitivity(g, type="global")
+  retval['transitivity'] = transitivity(g, type="global", isolates="NaN")
+  
+  if(n_comm){
+    wtc = walktrap.community(g)
+    retval['n_comm'] = length(unique(wtc$membership))
+  }
   
   return(retval)
 }
@@ -157,22 +162,32 @@ if(FALSE){
   names(edgelist)[1:2] = c("source", "target")
   setkey(edgelist, alpha)
   
-  #a = 10^seq(-4,0,length.out=30)[-1] # Not sure why, but results are funny for a=1e-4
-  a = 10^seq(-2,0,length.out=30)[-1] # Not sure why, but results are funny for a=1e-4
+  a = 10^seq(-4,0,length.out=30)
+  #a = 10^seq(-2,0,length.out=30)
+  a = a[-1]# Not sure why, but results are funny for a=1e-4
+  a = a[-length(a)]
   build_filtered_graph= function(a, el=edgelist){
     graph.data.frame(el[alpha<=a])
   }
   #test = build_filtered_graph(.0001) # Not sure why, but results are funny for a=1e-4
-  stats = sapply(a, function(x) calc_graph_stats( build_filtered_graph(x) ))
+  stats = sapply(a, function(x) calc_graph_stats( build_filtered_graph(x), n_comm=TRUE ))
   stats = data.table(t(stats))
   stats$alpha = a
   stats[,n_nodes := unlist(n_nodes)]
   stats[,n_edges := unlist(n_edges)]
+  stats[,transitivity := unlist(transitivity)]
+  stats[,n_comm := unlist(n_comm)]
   
   
-  stats[, plot(alpha, n_nodes/gorder(g), log='xy')]
-  stats[, plot(alpha, n_edges/ecount(g), log='xy')]
-  stats[, plot(alpha, transitivity, log='xy')]
+  stats[, plot(alpha, n_nodes/gorder(g), log='x', ylim=c(0,.1))]
+  stats[, plot(alpha, n_edges/ecount(g), log='x', ylim=c(0,.04))]
+  stats[, plot(alpha, transitivity, log='x')]
+  stats[, plot(alpha, n_comm, log='x', ylim=c(0, max(n_comm)))]
+  
+  g2 = build_filtered_graph(.001)
+  wtc = walktrap.community(g2)
+  names(wtc)
+  length(unique(wtc$membership))#2381
 }
 
 
