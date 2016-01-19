@@ -1,0 +1,271 @@
+---
+title: "The effect of the '2015 Blackout' on the reddit community"
+author: "David Marx"
+date: "January 17, 2016"
+output: html_document
+---
+
+```{r starttime, echo=FALSE}
+start0=Sys.time()
+```
+
+```{r load_libraries, echo=FALSE, message=F}
+# Load data and libraries.
+library(igraph)
+#library(RSQLite)
+library(data.table)
+library(lubridate)
+```
+
+```{r read_data, echo=FALSE}
+setwd("E:/Projects/SubredditMentionsGraph/")
+load("rdata/mentions.rdata")
+load("rdata/graphs.rdata")
+load("rdata/test.rdata")
+load("rdata/mentions_monthly_activity.rdata")
+
+# Define some stuff
+
+epochToDate = function(val){as.POSIXct(val, origin="1970-01-01")}
+
+get_peak_details = function(peak_ix){
+  peak_date = d_seq[-1][peak_ix]
+  node_id = test$arg_max_v[peak_ix]
+  node = V(graphs[[peak_ix]])[node_id] # user_history_bot ... wtf? Weirdness.
+  list(date=peak_date, node=node$name)
+}
+
+
+drange = list(d_min=ymd("2014-09-01"), d_max=ymd("2015-12-31"))
+
+d_seq = seq(from=drange$d_min, to=drange$d_max, by="week")
+d_seq_numeric = as.numeric(d_seq)
+
+
+```
+
+
+## Background
+
+I have been interested in examining how the reddit community has been evolving over time. In particular, there were several events that occurred this summer which had a significant impact on the reddit community, and I was curious to see if I could quantiyf the effects these events had on the community.
+
+## The Data
+
+/u/Stuck_In_the_Matrix released a corpus of public reddit comments, which he has been updating monthly. Felipe Hoffa, of the Google Big Query team, made this dataset available on Big Query. I am thankful to them both for making this incredibly interesting dataset available.
+
+### Building a graph
+
+To study how reddit has been changing, I queried the public comments corpus for comments containing "/r/SubredditName" markdown syntax, which is a markdown shorthand which creates hyperlinks to subreddits in comments. If a comment in subreddit A contains a link to subreddit B, we can then infer that some kind of relationship exists between these two subreddits. The collection of subreddits and relationships forms a social network, i.e. a graph.
+
+To study how the reddit graph has been evolving over time, I need to maintain the time component in my data. To capture behaviors on smaller subreddits, I grouped my data by week. Then, for each week, I counted the number of unique comment authors who had made a comment in subreddit A mentioning subreddit B, and used this count of unique users as the weight of this relationship. In other words, the weight of a connection in this graph is directly interpretable as the the number of unique users that week who "voted" in favor of the existence of that relationship.
+
+To mitigate the effect of bots and users promoting new subreddits, I only considered edges with a weight of at least "2". 
+
+This gives us a graph for each week in the data. By comparing changes in the graphs from week to week, we can learn a lot about how the community has been changing and even highlight periods of significant change.
+
+## Quantifying turmoil in the community with graph anomaly detection
+
+By comparing how relationships between subreddits change over time, we can identify time periods during which the community at large is undergoing turmoil. Specifcally, we can apply "scan statistics" over the dynamic graph, giving us a measure of the chaos in the community and highlighting the subreddits that are the focal points of the tumult.
+
+Details on this methodology will be discussed later: for now let's look at the results.
+
+The following plot can be interpreted as a quantification of the weekly "chaos"" in the reddit community over the last year.
+
+```{r plot_scan_stats, echo=FALSE}
+# Plot scan statistics
+plot(d_seq[-1], test$stat, type='l',
+     main="Chaos in the reddit community over 2015",
+     xlab="Date", ylab="Max value of normalized scan statistic"
+     )
+
+# Annotate spikes
+abline(v=ymd("2015-04-01"), col='green', lty=2) # The button (april fools)
+abline(v=ymd("2015-06-10"), col="red", lty=2) # FPH banned
+abline(v=ymd("2015-07-04"), col='blue', lty=2) # Victoria fired / 2015 Blackout
+
+
+legend("topleft", 
+       c("April Fools (/r/TheButton)",
+         "/r/FatPeopleHate banned", 
+         "Victoria fired/Blackout" 
+         ),
+       lty=2, col=c("green","red","blue")
+       )
+```
+
+There are four very well defined spikes here. The dates they correspond to and focal points of "chaos" for these spikes are, respectively:
+
+
+```{r table_spike_details, echo=FALSE}
+# Identify the most chaotic dates (weeks) and neighborhoods
+details = data.table(t(sapply(which(!is.na(test$stat)), get_peak_details)))
+details$stat = test$stat[!is.na(test$stat)]
+details[order(stat, decreasing=TRUE)][1:5][,list(Date=date, Subreddit=node, Statistic=stat)]
+```
+
+These spikes correspond to the following events:
+
+* 7/2/2015: Victoria is fired, resulting in the "2015 Blackout", the creation of a new /r/ModSupport subredit to centralize mod-admin communication, and CEO Ellen Pao stepping down (a week later on 7/10/2015) to be replaced by Steve Huffman.
+
+* 4/1/2015: "The Button" subreddit is created for the annual April Fools joke, spawning a good deal of discussion and the formation of a sprawling associated micro-community.
+
+* 6/10/2015: The subreddit /r/FatPeopleHate (FPH) is banned (among a handful of others), resulting in significant discussion surrounding free speech and censorship on reddit, and the spawning of many new subreddits in protest to the banning of FPH in particular or directing vitriol at CEO Ellen Pao directly.
+
+* I actually don't know what's going on with that last spike in early February. Narrowing in on it:
+
+```{r table_february_spikes, echo=FALSE}
+details[date>ymd("2015-02-02") & date < ymd("2015-03-09")][,list(Date=date, Subreddit=node, Statistic=stat)]
+```
+
+It appears to be associated with the /r/subredditcancer network which is generally critical of activities and behaviors of reddit users, and /r/newsokur which is a significant focal point of the Japanese reddit community. If anyone knows what was going on around this time that might have resulted in this spike, I'd be very interested to hear it.
+
+## Effect of the Blackout
+
+The graph anomaly detection presented above did a good job highlighting periods of significant chaos in the reddit community. One period that really stands out is the spike associated with the Blackout. A detailed history and description of the Blackout can be found [here](https://www.reddit.com/r/OutOfTheLoop/wiki/index/retired_questions#wiki_what_was_the_amageddon.2Freddit_blackout.3F), so I won't waste time providing background in this article. Just follow the lilnk if you want the context.
+
+In any event: in response to the Blackout, many users declared that they were fed up with reddit for various reasons, announced that they were abandoning reddit (many hoped to gain support for the reddit alternative Voat), and encouraged others to follow suit. For example, consider [this manifesto](https://www.reddit.com/r/Blackout2015/comments/3c2xmk/ive_closed_down_rcrappydesign_for_good_ive/) posted by the then owner of the subreddit /r/CrappyDesign, announcing he was shuttering the subreddit for good (he was unsuccessful, the community convinced the admins to place someone new in charge).
+
+It's clearly evident in our earlier analysis that the Blackout was an extermely significant event in the reddit community (the most tumultous event in 2015, according to the data, and likely in reddit's history if I were to allow my analysis to go further back). But were there any lasting effects? Was it a transient moment after which reddit returned to the status quo, or have there been lasting repercussions to the community?
+
+
+### Effect of the Blackout on user activity
+
+After the blackout, several users announced they were leaving reddit and encouraged others to follow. Were they a vocal minority? Was the userbase significantly changed in response to the blackout?
+
+To begin with, let's look at the count of monthly active users each month. For the purposes of this analysis, I define an active user as someone who has at least two comments over a week apart within a given month.
+
+```{r empty_big_query, echo=FALSE}
+### Big Query graph from all comments
+```
+
+Judging from this chart, it appears that the reddit community has been growing unencumbered. The blackout had basically no effect on the growth of active users.
+
+But, if we constrain our attention to "subreddit mention" comments of the kind used to build the dynamic graph I've been discussing, the results tell a very different story.
+
+```{r plot_user_shrinkage, echo=FALSE}
+active_users = mentions[,list(count=length(unique(author))), by=list(year(date), month(date), day(date))]
+active_users[,date:=ymd(paste(year, month, day, sep='-'))]
+active_users$index = 1:nrow(active_users)-1
+setkey(active_users, date)
+
+
+pre_blackout  = active_users[date < ymd("2015-06-01") & date>=ymd('2015-01-01')]
+post_blackout = active_users[date > ymd("2015-07-18")]
+
+mod_pre = lm(log(count)~index, pre_blackout)
+mod_post = lm(log(count)~index, post_blackout)
+
+mod_pre_d = lm(log(count)~date, pre_blackout)
+mod_post_D = lm(log(count)~date, post_blackout)
+summary(mod_pre)
+summary(mod_post) # reddit was already shrinking, but accelerated by an order of magnitude after the blackout
+# current shriknage rate = 0.12%
+with(active_users[date>=ymd('2015-01-01')],
+  plot(date, count,
+       xlab="Date", ylab="#Unique 'subreddit mentioning' users by day",
+       main="Effect of the 2015 Blackout on the\nmagnitude of the active reddit user base",
+       type='l'
+       )
+)
+lines(pre_blackout$date, exp(predict(mod_pre_d)), lty=2, col='blue')
+lines(post_blackout$date, exp(predict(mod_post)), lty=2, col='red')
+
+coef(mod_pre)  # +0.0003104884 (+.03% change day over day)
+coef(mod_post) # -0.0009321799 (-.09% change day over day)
+
+coef(mod_post)/coef(mod_pre) 
+```
+
+To quantify the effect the blackout had on this subset of "active" users, I fit two models to the data: one for the 2015 dates up to just before FPH got banned (6/1/2015), and another model for 2015 dates about a week after Ellen Pao stepped down, or two weeks after the Blackout (7/18/2015). A linear model would have fit the data well, but I'd prefer coefficients that I can interpret as percent change in the population since the actual count of this particular sub-population isn't really interesting to me: I'm using this subset of comments as a proxy for a particular kind of user activity. To this end, I used exponential models and indexed values as days since 1/1/2015 so my models are interpretable as expected daily percent change.
+
+Prior to the Blackout, the number of active users with respect to "subreddit mentioning" behavior was increasing at about $0.03\%$ each day. This model parameter is not significantly different from $0$, so we can interpret this model as demonstrating that this population of active users was approximately stable prior to the Blackout, but may have been growing a little.
+
+After the Blackout, this population has been pretty consistently *shrinking* at a rate of about $0.09\%$ each day. In other words, if this population was growing before the Blackout, it's now shrinking 3x faster than it was growing. This parameter *is* significant, so we can be pretty sure this population isn't stable if it was previously.
+
+### Active users in all comments vs. active users in "subreddit mentioning" comments
+
+When we look at all public comments, it looks like the userbase has been growing unaffected by the Blackout. If we constrain our attention to comments that contain subreddit mentions, it looks like the population was approximately stable (maybe growing slightly) prior to the blackout, but is now shrinking.
+
+Honestly, I'm not sure how to reconcile this discrepancy. It's possible that there might be some mechanism (like improved moderation tools) that is causing the reduction in the observation of this particular behavior. A more pessimistic interpretation is that this count of active users is a reasonale proxy for the population of active "power" users (since they are more likely to know/use reddit markdown than the general userbase), in which case this decline is reflective of a shrinkage of a particular population of reddit users.
+
+I'm not saying this is necessarily the case, but it's interesting to think about.
+
+### Effect of the Blackout on community topology
+
+Corresponding with this decrease in "subreddit mentioning" behaviors, we observe a corresponding shrinking of the community structure of reddit (the interconnectedness of subreddits). 
+
+```{r plot_graph_shrinkage, echo=FALSE}
+count_connected_nodes =  function(g){length(component_distribution(g))} 
+n_nodes = sapply(graphs, count_connected_nodes)
+
+pre_ix  = d_seq < ymd("2015-06-01") & d_seq >= ymd("2015-01-01")
+post_ix = d_seq > ymd("2015-07-04") & d_seq < ymd("2015-12-31")
+n_nodes_pre  = n_nodes[pre_ix]
+n_nodes_post = n_nodes[post_ix]
+
+mod_comp_pre  = lm(n_nodes_pre~which(pre_ix))
+mod_comp_post = lm(n_nodes_post~which(post_ix))
+
+mod_comp_pre_exp  = lm(log(n_nodes_pre)~which(pre_ix))
+mod_comp_post_exp = lm(log(n_nodes_post)~which(post_ix))
+
+plot(d_seq[-1], n_nodes,
+     xlab="Date", ylab="Size of giant component (# nodes)",
+     main="Effect of the 2015 Blackout on the reddit graph"
+     )
+lines(d_seq[-1][pre_ix], exp(predict(mod_comp_pre_exp)), lty=2, col='blue')
+lines(d_seq[-1][post_ix][!is.na(d_seq[-1][post_ix])], exp(predict(mod_comp_post_exp)), lty=2, col='red')
+
+# By all accounts, the community is shrinking
+coef(mod_comp_post)/coef(mod_comp_pre) # -3.422815 
+# The community (qua graph) has shrunk about 3% since the blackout
+# It was growing (qua graph) before the black, but it has flipped to shrinking (sign change)
+# and is shrinking over 5x faster than it was previously growing.
+
+# Before the blackout, the main component was growing at a rate of about 7.7 subreddits per week (+0.24%).
+# Now, we're shrinking at a rate of about 26 subreddits per week (-0.85%). 
+
+# As we observed analyzing the data from the perspective of active users, the community is shrinking about
+# 3x faster than it was previously growing.
+```
+
+It is interesting that the ratio of growth rates before/after the blackout is approximately the same when we compare ratios for community growth vs. growth of the active user population (wrt subreddit mentions): a change of approximately $-3x$.
+
+```{r, echo=False}
+
+gorder_no_isolates = function(g){
+  d = degree(g)
+  length(d[d>0])
+}
+
+n_nodes_no_isolates = sapply(graphs, gorder_no_isolates)
+
+plot(d_seq[-1], n_nodes_no_isolates,
+     main="Count of nodes with degree > 0",
+     xlab="Date",
+     ylab="Nodes"
+     )
+abline(v=ymd("2015-06-10"), lty=2)
+abline(v=ymd("2015-07-03"), lty=2)
+
+plot(d_seq[-1], sapply(graphs, ecount),
+     main="Count of edges",
+     xlab="Date",
+     ylab="Edges"
+     )
+abline(v=ymd("2015-06-10"), lty=2)
+abline(v=ymd("2015-07-03"), lty=2)
+```
+
+
+## Methodological details for graph anomaly detection
+
+One approach to this kind of anomaly detection was suggested by Serrano (2009) in their application of scan statistics to the Enron email network. Their problem was similar in that they were trying to identify time periods during which their network of interest was undergoing upheaval.
+
+The approach is as follows: for each node in the graph, isolate its community out to some depth `k` (usually k=1 or 2). Then calculate some statistic over this subgraph, which we will call the "scan statistic." The scan statistic used by Serrano is the sum of edge weights in the subgraph. We calculate the scan statistic for each node for each time step. Then, we standardize our observations by looking back across $\tau$ timesteps. Finally, for each timestep we calculate the max value taken by the scan statistic for any node in that time period, and examine the distribution of this max over all time periods to identify anomalous time steps.
+
+
+```{r finaltime, echo=FALSE}
+end=Sys.time()
+print(end-start0)
+```
